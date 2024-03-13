@@ -39,16 +39,20 @@ class TestPanda(unittest.TestCase):
         leader = panda.JointLeader(panda_params)
         leader.pre_teleop()
         leader.start_teleop()
-        joint_positions: containers.JointPositions = pickle.loads(
+        sync_command: containers.JointPositions = pickle.loads(
             leader.get_sync_command()
         )
-        testing.assert_allclose(joint_positions.positions, np.zeros(7))
-        cmd = containers.JointTorques(np.zeros(7))
-        leader.set_command(pickle.dumps(cmd))
-        joint_velocities: containers.JointVelocities = pickle.loads(
-            leader.get_command()
+        testing.assert_allclose(sync_command.positions, np.zeros(7))
+        cmd = containers.JointStates(
+            q=containers.JointPositions(np.zeros(7)),
+            dq=containers.JointVelocities(np.zeros(7)),
+            tau_ext=containers.JointTorques(np.zeros(7)),
         )
-        testing.assert_allclose(joint_velocities.velocites, np.zeros(7))
+        leader.set_command(pickle.dumps(cmd))
+        joint_states: containers.JointStates = pickle.loads(leader.get_command())
+        testing.assert_allclose(joint_states.tau_ext.torques, np.zeros(7))
+        testing.assert_allclose(joint_states.dq.velocites, np.zeros(7))
+        testing.assert_allclose(joint_states.q.positions, np.zeros(7))
         leader.pause()
         leader.unpause()
         leader.open()
@@ -83,10 +87,14 @@ class TestPanda(unittest.TestCase):
         follower.pre_teleop()
         follower.start_teleop()
         follower.set_sync_command(pickle.dumps(containers.JointPositions(np.zeros(7))))
-        cmd = containers.JointVelocities(np.zeros(7))
+        cmd = containers.JointStates(
+            q=containers.JointPositions(np.zeros(7)),
+            dq=containers.JointVelocities(np.zeros(7)),
+            tau_ext=containers.JointTorques(np.zeros(7)),
+        )
         follower.set_command(pickle.dumps(cmd))
-        joint_torques: containers.JointTorques = pickle.loads(follower.get_command())
-        testing.assert_allclose(joint_torques.torques, np.zeros(7))
+        joint_states: containers.JointStates = pickle.loads(follower.get_command())
+        testing.assert_allclose(joint_states.tau_ext.torques, np.zeros(7))
         follower.open()
         follower.close()
         assert follower.panda.gripper.stop.call_count == 2

@@ -7,18 +7,41 @@
   </asset>
 
   <worldbody>
-    <site name="left" pos="0 0.205 0.5" quat="0.5 -0.5  0.5 -0.5" />
-    <site name="right" pos="0 -0.205 0.5" quat="0.5 0.5 0.5 0.5" />
+    <site name="left" pos="0 0.24 0.5" quat="0.5 -0.5  0.5 -0.5" />
+    <site name="right" pos="0 -0.24 0.5" quat="0.5 0.5 0.5 0.5" />
     <light directional='true' diffuse='.7 .7 .7' pos='1 .1 2' dir='0 -.1 -2' specular='.3 .3 .3' castshadow='true'/>
-    <body pos="1 0 .3" mocap="true" name="plane">
-      <geom name="plane" type="box" size=".2 .4 .01" />
-      <body pos="0 0 .0235" name="object">
-        <joint name="x" type="slide" axis="1 0 0" range="-.2 .2" />
-        <joint name="y" type="slide" axis="0 1 0" range="-.4 .4" />
-        <joint name="theta" type="hinge" axis="0 0 1" />
-        <geom type="box" name="object_1" size=".015 .04 .015" pos="0.075 -0.025 0" />
-        <geom type="box" name="object_2" size=".06 .015 .015" />
+    <body pos=".845 0.015 .34" name="plane">
+      <geom name="plane" type="box" pos="0 0 -.01" size=".105 .205 .01" rgba=".2 .2 .2 1" />
+      <geom name="side_a" type="box" pos=".1035 0 .0015" size=".0015 .205 .0015" rgba=".2 .2 .2 1" />
+      <geom name="side_b" type="box" pos="-.1035 0 .0015" size=".0015 .205 .0015" rgba=".2 .2 .2 1" />
+      <geom name="side_c" type="box" pos="0 .2035 .0015" size=".102 .0015 .0015" rgba=".2 .2 .2 1" />
+      <geom name="side_d" type="box" pos="0 -.2035 .0015" size=".102 .0015 .0015" rgba=".2 .2 .2 1" />
+      <joint name="plane" type="hinge" axis="1 0 0" pos="0 0 -0.0225" range="-0.1745 0.1745" />
+      <body name="object" pos="-.075 .04 0">
+        <joint name="x" type="slide" axis="1 0 0" frictionloss="100" />
+        <joint name="y" type="slide" axis="0 1 0" frictionloss="100" />
+        <joint name="theta" type="hinge" axis="0 0 1" pos="0.06 -0.055 0.015" frictionloss="2" />
+        <site name="object" pos="0.06 -0.055 0.015" />
+        <geom type="box" mass="0.142" name="object_1" size=".015 .04 .015" pos="0.015 -0.04 0.015" rgba=".8 .8 .8 1" />
+        <geom type="box" mass="0.213" name="object_2" size=".06 .015 .015" pos=".09 -.065 0.015" rgba=".8 .8 .8 1" />
       </body>
+
+      <body name="goal" pos="0 0 0" euler="0 0 -1.5707">
+        <site name="goal" pos="0.06 -0.055 0.015" />
+        <geom type="box" size=".015 .04 .015" pos="0.015 -0.04 0.015" rgba="1 0 0 .1" />
+        <geom type="box" size=".06 .015 .015" pos=".09 -.065 0.015" rgba="1 0 0 .1" />
+      </body>
+
     </body>
   </worldbody>
+  <contact>
+    <pair geom1="object_1" geom2="side_a" />
+    <pair geom1="object_1" geom2="side_b" />
+    <pair geom1="object_1" geom2="side_c" />
+    <pair geom1="object_1" geom2="side_d" />
+    <pair geom1="object_2" geom2="side_a" />
+    <pair geom1="object_2" geom2="side_b" />
+    <pair geom1="object_2" geom2="side_c" />
+    <pair geom1="object_2" geom2="side_d" />
+  </contact>
 </mujoco>

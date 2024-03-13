@@ -36,26 +36,32 @@ class TestParti(unittest.TestCase):
         leader.pre_teleop()
         leader.start_teleop()
         leader.get_sync_command()
-        cmd = containers.TwoArmJointTorques(
-            left=containers.JointTorques(np.zeros(7)),
-            right=containers.JointTorques(np.zeros(7)),
+        cmd = containers.TwoArmJointStates(
+            left=containers.JointStates(
+                q=containers.JointPositions(np.zeros(7)),
+                dq=containers.JointVelocities(np.zeros(7)),
+                tau_ext=containers.JointTorques(np.zeros(7)),
+            ),
+            right=containers.JointStates(
+                q=containers.JointPositions(np.zeros(7)),
+                dq=containers.JointVelocities(np.zeros(7)),
+                tau_ext=containers.JointTorques(np.zeros(7)),
+            ),
         )
         leader.set_command(pickle.dumps(cmd))
-        joint_velocities: containers.TwoArmJointVelocities = pickle.loads(
-            leader.get_command()
-        )
-        self.assert_joint_velocities(joint_velocities.left)
-        self.assert_joint_velocities(joint_velocities.right)
+        joint_states: containers.TwoArmJointStates = pickle.loads(leader.get_command())
+        self.assert_joint_states(joint_states.left)
+        self.assert_joint_states(joint_states.right)
         leader.pause()
         leader.unpause()
         leader.post_teleop()
 
-    def assert_joint_velocities(
-        self, joint_velocities: containers.JointVelocities | None
-    ) -> None:
-        assert joint_velocities is not None
-        if joint_velocities is not None:
-            testing.assert_allclose(joint_velocities.velocites, np.zeros(7))
+    def assert_joint_states(self, joint_states: containers.JointStates | None) -> None:
+        assert joint_states is not None
+        if joint_states.dq is not None:
+            testing.assert_allclose(joint_states.dq.velocites, np.zeros(7))
+        if joint_states.q is not None:
+            testing.assert_allclose(joint_states.q.positions, np.zeros(7))
 
     def assert_displacement(self, displacement: containers.Displacement) -> None:
         testing.assert_allclose(displacement.linear, np.zeros(3))

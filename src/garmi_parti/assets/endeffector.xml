@@ -1,0 +1,13 @@
+<mujoco>
+  <asset>
+    <mesh name="endeffector" file="pusher.obj" />
+    <mesh name="ft" file="ft.obj" />
+  </asset>
+  <worldbody>
+    <body>
+      <geom type="mesh" mesh="ft" mass=".044" solref="0.002 0.7" solimp="0.95 0.995 0.001" condim="4" rgba=".8 .8 .8 1" />
+      <geom type="mesh" pos="0 0 0.035" mesh="endeffector" mass=".044" solref="0.002 0.7" solimp="0.95 0.995 0.001" condim="4" rgba=".8 .8 .8 1" />
+      <site name="TCP" pos="0 0 0.12" size="0.001" />
+    </body>
+  </worldbody>
+</mujoco>

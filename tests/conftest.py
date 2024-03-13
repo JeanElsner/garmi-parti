@@ -23,6 +23,11 @@ def _mock_argparse():
             mode="joint",
             sim_only=True,
             testing=True,
+            deactivate_left=False,
+            deactivate_right=False,
+            use_ros=False,
+            ros_hostname="localhost",
+            ros_port=9090,
         ),
     ):
         yield

@@ -78,21 +78,21 @@ class JointLeader(interfaces.PandaInterface):
 
     def _get_command(
         self, container: containers.TeleopContainer
-    ) -> containers.JointVelocities:
-        return containers.JointVelocities(container.arm.get_state().dq)
+    ) -> containers.JointStates:
+        return containers.JointStates.from_state(container.arm.get_state())
 
     def set_command(self, command: bytes) -> None:
-        joint_torques: containers.JointTorques = pickle.loads(command)
-        self._set_command(self.panda, joint_torques)
+        joint_states: containers.JointStates = pickle.loads(command)
+        self._set_command(self.panda, joint_states)
 
     def _set_command(
         self,
         container: containers.TeleopContainer,
-        joint_torques: containers.JointTorques,
+        joint_states: containers.JointStates,
     ) -> None:
         self.fdir(container)
         container.controller.set_control(
-            -container.params.gain_joint_torque * np.array(joint_torques.torques)
+            -container.params.gain_joint_torque * np.array(joint_states.tau_ext.torques)
         )
 
     def get_sync_command(self) -> bytes:
@@ -185,20 +185,23 @@ class JointFollower(interfaces.PandaInterface):
 
     def _get_command(
         self, container: containers.TeleopContainer
-    ) -> containers.JointTorques:
-        return containers.JointTorques(container.arm.get_state().tau_ext_hat_filtered)
+    ) -> containers.JointStates:
+        return containers.JointStates.from_state(container.arm.get_state())
 
     def set_command(self, command: bytes) -> None:
-        joint_velocities: containers.JointVelocities = pickle.loads(command)
-        self._set_command(joint_velocities, self.panda)
+        joint_states: containers.JointStates = pickle.loads(command)
+        self._set_command(joint_states, self.panda)
 
     def _set_command(
         self,
-        joint_velocities: containers.JointVelocities,
+        joint_states: containers.JointStates,
         container: containers.TeleopContainer,
     ) -> None:
         self.fdir(container)
-        container.controller.set_control(joint_velocities.velocites)
+        ctrl: controllers.IntegratedVelocity = container.controller
+        error = ctrl.get_qd() - joint_states.q.positions
+        dqd = joint_states.dq.velocites - container.params.gain_drift * error
+        container.controller.set_control(dqd)
 
     def pause(self) -> None:
         self.panda.arm.stop_controller()

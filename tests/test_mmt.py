@@ -38,20 +38,18 @@ class TestGarmi(unittest.TestCase):
         leader.start_teleop()
         leader.get_sync_command()
         leader.set_command(b"")
-        joint_velocities: containers.TwoArmJointVelocities = pickle.loads(
-            leader.get_command()
-        )
-        self.assert_joint_velocities(joint_velocities.left)
-        self.assert_joint_velocities(joint_velocities.right)
+        joint_states: containers.TwoArmJointStates = pickle.loads(leader.get_command())
+        self.assert_joint_states(joint_states.left)
+        self.assert_joint_states(joint_states.right)
         leader.pause()
         leader.unpause()
         leader.post_teleop()
         self.stop_pub()
 
-    def assert_joint_velocities(
-        self, joint_velocities: containers.JointVelocities
-    ) -> None:
-        testing.assert_allclose(joint_velocities.velocites, np.zeros(7))
+    def assert_joint_states(self, joint_states: containers.JointStates) -> None:
+        testing.assert_allclose(joint_states.tau_ext.torques, np.zeros(7))
+        testing.assert_allclose(joint_states.dq.velocites, np.zeros(7))
+        testing.assert_allclose(joint_states.q.positions, np.zeros(7))
 
     def start_pub(self):
         self.running = True
@@ -69,14 +67,16 @@ class TestGarmi(unittest.TestCase):
         while self.running:
             socket.send(
                 pickle.dumps(
-                    (
-                        containers.TwoArmJointPositions(
-                            left=containers.JointPositions(np.zeros(7)),
-                            right=containers.JointPositions(np.zeros(7)),
+                    containers.TwoArmJointStates(
+                        left=containers.JointStates(
+                            q=containers.JointPositions(np.zeros(7)),
+                            dq=containers.JointVelocities(np.zeros(7)),
+                            tau_ext=containers.JointTorques(np.zeros(7)),
                         ),
-                        containers.TwoArmJointVelocities(
-                            left=containers.JointVelocities(np.zeros(7)),
-                            right=containers.JointVelocities(np.zeros(7)),
+                        right=containers.JointStates(
+                            q=containers.JointPositions(np.zeros(7)),
+                            dq=containers.JointVelocities(np.zeros(7)),
+                            tau_ext=containers.JointTorques(np.zeros(7)),
                         ),
                     )
                 )

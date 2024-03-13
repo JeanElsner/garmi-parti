@@ -26,10 +26,37 @@ class JointPositions:
 @dataclasses.dataclass
 class JointVelocities:
     """
-    Joint velocity container.
+    Joint velocities container.
     """
 
     velocites: np.ndarray
+
+
+@dataclasses.dataclass
+class JointTorques:
+    """
+    Joint torques container.
+    """
+
+    torques: np.ndarray
+
+
+@dataclasses.dataclass
+class JointStates:
+    """Joint state container."""
+
+    q: JointPositions
+    dq: JointVelocities
+    tau_ext: JointTorques
+
+    @classmethod
+    def from_state(cls, state: libfranka.RobotState) -> JointStates:
+        """Construct a joint states container from a libfranka robot state."""
+        return cls(
+            JointPositions(np.array(state.q)),
+            JointVelocities(np.array(state.dq)),
+            JointTorques(np.array(state.tau_ext_hat_filtered)),
+        )
 
 
 def _default_stiffness() -> np.ndarray:
@@ -70,6 +97,7 @@ class TeleopParams:
     gain_torque: float = 0.0
     gain_joint_torque: float = 0.8
     speed_factor: float = 0.2
+    gain_drift: float = 8.0
 
 
 @dataclasses.dataclass
@@ -135,15 +163,6 @@ class Wrench:
 
 
 @dataclasses.dataclass
-class JointTorques:
-    """
-    Joint torque container.
-    """
-
-    torques: np.ndarray
-
-
-@dataclasses.dataclass
 class Pose:
     """
     Pose container.
@@ -198,6 +217,13 @@ class TwoArmJointPositions(TwoArmContainer[typing.Optional[JointPositions]]):
 class TwoArmJointVelocities(TwoArmContainer[typing.Optional[JointVelocities]]):
     """
     Two-arm joint positions container.
+    """
+
+
+@dataclasses.dataclass
+class TwoArmJointStates(TwoArmContainer[typing.Optional[JointStates]]):
+    """
+    Two-arm joint states container.
     """
 
 
